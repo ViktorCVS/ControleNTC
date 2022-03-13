@@ -1,39 +1,38 @@
-#include <math.h>
+#include <math.h> // Como foi necessário usar a função logaritmo na base de euler, incluímos a biblioteca 'math.h' no projeto
 
-float tensao_inicial=1.5;
-int tensao_inicial_pwm = round(tensao_inicial*255/5);
+//---------- Entradas ----------
 
-float tensao_saida_arduino;
-float tensao_saida;
-float corrente_entrada;
+float tensao_inicial=1.5;         // Definindo a tensão aplicada no circuito no tempo zero
+float temperatura_ref_C = 35.5;   // Definindo a temperatura de referência do sensor, em graus Celsius
+float alfa=0.95;                  // Definindo a constante do filtro na variável controlada
+float a1=5.839;                   // Definindo o primeiro parâmetro do controlador
+float a2=-5.589;                  // Definindo o segundo parâmetro do controlador
 
-float controle_anterior=tensao_inicial;
-float controle=tensao_inicial;
-int controle_pwm = tensao_inicial_pwm;
+//---------- Variáveis ----------
 
-float rs;
-float Ps;
-float Ta;
+int tensao_inicial_pwm = round(tensao_inicial*255/5); // Passando a tensão inicial desejada para o valor aceito pelo Arduino UNO (inteiro entre 0 e 255)
 
-int rin=1643;
-int B=3950;
-float A=0.005289681;
-float Gth = 0.002;
-float Cth = 0.024;
+int tensao_saida_arduino;   // Definindo a variável que receberá a medida da tensão nos terminais do sensor (inteiro entre 0 e 1023)
+float tensao_saida;         // Definindo a variável que receberá a tensão do sensor em volts
+float corrente_entrada;     // Definindo a variável que receberá a corrente que passa na entrada e no sensor
 
-//k=0.5;T=0.5
-float a1=5.839;
-float a2=-5.589;
+float controle=tensao_inicial;            // Definindo a variável de controle, que receberá o valor em Volts a ser aplicado no sensor no próximo instante de tempo
+float controle_anterior=tensao_inicial;   // Definindo a variável que receberá o valor antigo da variável 'controle'
+int controle_pwm = tensao_inicial_pwm;    // Definindo a variável que receberá a variável de controle para o valor aceito pelo Arduino UNO (inteiro entre 0 e 255)
 
-float alfa=0.95;
+float rs; // Definindo a variável que receberá o valor da resistência do sensor
 
-float erro[2]={0,0};
+int rin=1643;         // Definindo a variável que contém o valor da resistência de entrada
+int B=3950;           // Definindo a variável que contém o valor da constante B do sensor NTC
+float A=0.005289681;  // Definindo a variável que contém o valor da constante A do sensor NTC
 
-float temperatura_ref_C = 35.5;
-float temperatura_ref = temperatura_ref_C+273.15;
+float erro[2]={0,0};  // Definindo o vetor que acumulará o erro atual e passado da temperatura do sensor com a referência
 
-float temperatura_sensor;
-float temperatura_filtro_anterior;
+
+float temperatura_ref = temperatura_ref_C+273.15; // Definindo a variável que receberá a temperatura de referência em Kelvin
+
+float temperatura_sensor;           // Definindo a variável que receberá a temperatura do sensor
+float temperatura_filtro_anterior;  // Definindo a variável que receberá a temperatura filtrada do sensor no instante anterior
 
 unsigned long i=0;
 
