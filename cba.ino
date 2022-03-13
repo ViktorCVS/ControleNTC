@@ -1,3 +1,5 @@
+//---------- Definição de módulos ----------
+
 #include <math.h> // Como foi necessário usar a função logaritmo na base de euler, incluímos a biblioteca 'math.h' no projeto
 
 //---------- Entradas ----------
@@ -34,22 +36,28 @@ float temperatura_ref = temperatura_ref_C+273.15; // Definindo a variável que r
 float temperatura_sensor;           // Definindo a variável que receberá a temperatura do sensor
 float temperatura_filtro_anterior;  // Definindo a variável que receberá a temperatura filtrada do sensor no instante anterior
 
-unsigned long i=0;
+//---------- Iniciando a programação ----------
 
 void setup() {
+ 
+ //---------- Definindo entrada, saída e porta serial ----------
 
-pinMode(3, OUTPUT);
-Serial.begin(9600);
-
-}
-
-void loop() {
+pinMode(3, OUTPUT); // Linha de código para definir o pino 3 como saída
+Serial.begin(9600); // Linha de código para iniciar a porta serial com a velocidade 9600
+ 
+ //---------- Bloco especial ----------
+ 
+ /* O bloco seguinte foi criado, parecido com as primeiras linhas
+ do código em repetição, para a definição prévia da variável
+ "temperatura_filtro_anterior", pois ela precisa ser igual
+ a temperatura do sensor no primeiro ciclo, que só pode ser
+ definida após essa série de operações. Para economia de memória,
+ não foram usadas funções. As operações serão detalhadas no
+ laço de repetição. */
  
 analogWrite(3, controle_pwm); 
 
 delay(499);
-
-erro[0] = erro[1];
 
 tensao_saida_arduino=analogRead(A4);
 
@@ -57,42 +65,62 @@ tensao_saida = (float)tensao_saida_arduino*5/1023;
 
 corrente_entrada = controle/rin;
 
-Ps = tensao_saida*corrente_entrada;
-
-rs = tensao_saida/corrente_entrada; //Corrente de saída = Corrente de entrada
+rs = tensao_saida/corrente_entrada; 
 
 temperatura_sensor = B/log(rs/A);
-
-if(i<1){
-  
-  temperatura_filtro_anterior=temperatura_sensor;
  
-  }
+temperatura_filtro_anterior=temperatura_sensor;
 
-temperatura_filtro = temperatura_filtro_anterior*alfa+temperatura_sensor*(1-alfa);
+}
 
-temperatura_filtro_anterior=temperatura_filtro;
+void loop() {
+ 
+ //---------- Início do laço de repetição ----------
+ 
+analogWrite(3, controle_pwm); // Enviando o sinal PWM através do pino 3, com a tensão inicial escolhida previamente
 
-erro[1]= temperatura_ref - temperatura_filtro;
+delay(499);                  // Usando uma função nativa de atraso, para manter o tempo de amostragem estipulado
 
-controle = controle_anterior+a1*erro[1]+a2*erro[0];
+erro[0] = erro[1];           // Atribuindo ao erro passado o valor do erro atual
+
+tensao_saida_arduino=analogRead(A4);               // Medindo a tensão nos terminais do sensor
+
+tensao_saida = (float)tensao_saida_arduino*5/1023; // Passando do formato inteiro 0-1023 para volts
+
+corrente_entrada = controle/rin;    // Calculando a corrente de entrada pela divisão entre a tensão utilizada e a resistência de entrada 
+
+rs = tensao_saida/corrente_entrada; // Calculando a resistência do sensor, dividindo a tensão medida pela corrente de entrada (que é igual a de saída)
+
+temperatura_sensor = B/log(rs/A);   // Encontrando a temperatura do sensor pela equação estática, usando as constantes e a resistência deste
+
+temperatura_filtro = temperatura_filtro_anterior*alfa+temperatura_sensor*(1-alfa); // Aplicando o filtro projetado para a temperatura do sensor
+
+temperatura_filtro_anterior=temperatura_filtro; // Passando o valor atual da temperatura filtrada para a variável do valor anterior deste
+
+erro[1]= temperatura_ref - temperatura_filtro;  // Calculando o erro pela diferença entre a temperatura de referência e a medida (filtrada)
+
+controle = controle_anterior+a1*erro[1]+a2*erro[0]; // Cálculo da saída do controlador
 
 if(controle<0.6){
+ 
+ /* Condicional para impedir que a tensão do
+ controlador seja inferior à 0.6V */
   
   controle = 0.6;
   
   }
   
 else if(controle>5){
+ 
+ /* Condicional para impedir que a tensão do
+ controlador seja superior à 5V (limite do Arduino UNO */
   
   controle = 5;
   
   }
 
-controle_anterior = controle;
+controle_anterior = controle;                    // Passando o valor atual do controle (após condicionais) para a variável do valor anterior deste
 
-controle_pwm = round((float)controle*255.0/5.0);
-
-i++;
+controle_pwm = round((float)controle*255.0/5.0); // Passando o valor atual do controle (após condicionais) para um inteiro entre 0 e 255 (para o sinal PWM)
 
 }
