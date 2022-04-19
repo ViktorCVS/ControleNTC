@@ -114,11 +114,11 @@ controle = (float)controle*1000/rin; // Voltando a unidade da variável de contr
 
 controle_anterior = controle;        // Passando o valor atual do controle (após condicionais) para a variável que acumula o valor anterior de controle
 
-Serial.print(temperatura_filtro-273.15); // Enviando para a porta serial o valor da temperatura atual do sensor em graus Celcius
-Serial.print(",");                       // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
-Serial.print(temperatura_ref_C);         // Enviando para a porta serial o valor da temperatura de referência, em graus Celcius
-Serial.print(",");                       // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
-Serial.print(corrente_entrada*1000);     // Enviando para a porta serial o valor da corrente de entrada no instante atual
+Serial.print(temperatura_filtro-273.15);   // Enviando para a porta serial o valor da temperatura atual do sensor em graus Celcius
+Serial.print(",");                         // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
+Serial.print(temperatura_ref_C);           // Enviando para a porta serial o valor da temperatura de referência, em graus Celcius
+Serial.print(",");                         // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
+Serial.println(corrente_entrada*1000);     // Enviando para a porta serial o valor da corrente de entrada no instante atual
 
 i++; // Incrementando o valor da variável que contém o número de vezes que o laço de repetição foi executado
 
