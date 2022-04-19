@@ -4,27 +4,27 @@
 
 //---------- Entradas ----------
 
-float tensao_inicial=1.5;         // Definindo a tensão aplicada no circuito no tempo zero
-float temperatura_ref_C = 35.5;   // Definindo a temperatura de referência do sensor, em graus Celsius
-float alfa=0.95;                  // Definindo a constante do filtro na variável controlada
-float a1=5.839;                   // Definindo o primeiro parâmetro do controlador
-float a2=-5.589;                  // Definindo o segundo parâmetro do controlador
+float corrente_inicial=(float)1.5*1000/rin;   // Definindo a corrente (em mili ampère) aplicada no circuito no tempo zero. Usou-se a corrente que corresponde a 1.5V em rin
+float temperatura_ref_C = 35.5;               // Definindo a temperatura de referência do sensor, em graus Celsius
+float alfa=0.92;                              // Definindo a constante do filtro na variável controlada
+float a1=0.5243;                              // Definindo o primeiro parâmetro do controlador
+float a2=-0.5043;                             // Definindo o segundo parâmetro do controlador
 
 //---------- Variáveis ----------
 
-int tensao_inicial_pwm = round(tensao_inicial*255/5); // Passando a tensão inicial desejada para o valor aceito pelo Arduino UNO (inteiro entre 0 e 255)
+int tensao_inicial_pwm = round(1.5*255/5); // Passando a tensão inicial desejada (1.5V) para o valor aceito pelo Arduino UNO (inteiro entre 0 e 255)
 
 int tensao_saida_arduino;   // Definindo a variável que receberá a medida da tensão nos terminais do sensor (inteiro entre 0 e 1023)
 float tensao_saida;         // Definindo a variável que receberá a tensão do sensor em volts
 float corrente_entrada;     // Definindo a variável que receberá a corrente que passa na entrada e no sensor
 
-float controle=tensao_inicial;            // Definindo a variável de controle, que receberá o valor em Volts a ser aplicado no sensor no próximo instante de tempo
-float controle_anterior=tensao_inicial;   // Definindo a variável que receberá o valor antigo da variável 'controle'
-int controle_pwm = tensao_inicial_pwm;    // Definindo a variável que receberá a variável de controle para o valor aceito pelo Arduino UNO (inteiro entre 0 e 255)
+float controle=corrente_inicial;           // Definindo a variável de controle, que receberá o valor em mili ampère a ser aplicado no sensor no próximo instante de tempo
+float controle_anterior=corrente_inicial;  // Definindo a variável que receberá o valor antigo da variável 'controle'
+int controle_pwm = tensao_inicial_pwm;     // Definindo a variável que receberá a variável de controle para o valor aceito pelo Arduino UNO (inteiro entre 0 e 255)
 
 float rs; // Definindo a variável que receberá o valor da resistência do sensor
 
-int rin=1643;         // Definindo a variável que contém o valor da resistência de entrada
+int rin=1644;         // Definindo a variável que contém o valor da resistência de entrada
 int B=3950;           // Definindo a variável que contém o valor da constante B do sensor NTC
 float A=0.005289681;  // Definindo a variável que contém o valor da constante A do sensor NTC
 
@@ -34,6 +34,7 @@ float erro[2]={0,0};  // Definindo o vetor que acumulará o erro atual e passado
 float temperatura_ref = temperatura_ref_C+273.15; // Definindo a variável que receberá a temperatura de referência em Kelvin
 
 float temperatura_sensor;           // Definindo a variável que receberá a temperatura do sensor
+float temperatura_filtro;           // Definindo a variável que receberá a temperatura filtrada do sensor no instante atual
 float temperatura_filtro_anterior;  // Definindo a variável que receberá a temperatura filtrada do sensor no instante anterior
 
 //---------- Iniciando a programação ----------
@@ -43,33 +44,8 @@ void setup() {
  //---------- Definindo entrada, saída e porta serial ----------
 
 pinMode(3, OUTPUT); // Linha de código para definir o pino 3 como saída
+pinMode(A5, INPUT); // Linha de código para definir o pino A5 como entrada
 Serial.begin(9600); // Linha de código para iniciar a porta serial com a velocidade 9600
- 
- //---------- Bloco especial ----------
- 
- /* O bloco seguinte foi criado, parecido com as primeiras linhas
- do código em repetição, para a definição prévia da variável
- "temperatura_filtro_anterior", pois ela precisa ser igual
- a temperatura do sensor no primeiro ciclo, que só pode ser
- definida após essa série de operações. Para economia de memória,
- não foram usadas funções. As operações serão detalhadas no
- laço de repetição. */
- 
-analogWrite(3, controle_pwm); 
-
-delay(499);
-
-tensao_saida_arduino=analogRead(A4);
-
-tensao_saida = (float)tensao_saida_arduino*5/1023;
-
-corrente_entrada = controle/rin;
-
-rs = tensao_saida/corrente_entrada; 
-
-temperatura_sensor = B/log(rs/A);
- 
-temperatura_filtro_anterior=temperatura_sensor;
 
 }
 
@@ -77,21 +53,29 @@ void loop() {
  
  //---------- Início do laço de repetição ----------
  
-analogWrite(3, controle_pwm); // Enviando o sinal PWM através do pino 3, com a tensão inicial escolhida previamente
+analogWrite(3, controle_pwm); // Enviando o sinal PWM através do pino 3
 
-delay(499);                  // Usando uma função nativa de atraso, para manter o tempo de amostragem estipulado
+delay(497);                  // Usando uma função nativa de atraso, para manter o tempo de amostragem estipulado (o tempo de execução do código ficou entorno de 3 mili segundos)
 
 erro[0] = erro[1];           // Atribuindo ao erro passado o valor do erro atual
 
-tensao_saida_arduino=analogRead(A4);               // Medindo a tensão nos terminais do sensor
+tensao_saida_arduino=analogRead(A5);               // Medindo a tensão nos terminais do sensor
 
 tensao_saida = (float)tensao_saida_arduino*5/1023; // Passando do formato inteiro 0-1023 para volts
 
-corrente_entrada = controle/rin;    // Calculando a corrente de entrada pela divisão entre a tensão utilizada e a resistência de entrada 
+corrente_entrada = (float)controle/1000;    // Calculando a corrente de entrada com a variável de controle (passando de mA para A)
 
-rs = tensao_saida/corrente_entrada; // Calculando a resistência do sensor, dividindo a tensão medida pela corrente de entrada (que é igual a de saída)
+rs = (float)tensao_saida/corrente_entrada; // Calculando a resistência do sensor, dividindo a tensão medida pela corrente de entrada (que é igual a de saída)
 
-temperatura_sensor = B/log(rs/A);   // Encontrando a temperatura do sensor pela equação estática, usando as constantes e a resistência deste
+temperatura_sensor = (float)B/log(rs/A);   // Encontrando a temperatura do sensor pela equação estática, usando as constantes e a resistência deste
+ 
+if(i<1){
+   
+    /* Condicional para, na primeira iteração, atribuir à temperatura anterior 
+    o valor da temperatura atual do sensor */
+   
+    temperatura_filtro_anterior=temperatura_sensor;
+    }
 
 temperatura_filtro = temperatura_filtro_anterior*alfa+temperatura_sensor*(1-alfa); // Aplicando o filtro projetado para a temperatura do sensor
 
@@ -101,26 +85,37 @@ erro[1]= temperatura_ref - temperatura_filtro;  // Calculando o erro pela difere
 
 controle = controle_anterior+a1*erro[1]+a2*erro[0]; // Cálculo da saída do controlador
 
+controle = (float)(controle/1000)*rin; //Passando o controle (em mA) para Volts, visto que as limitações do arduino são melhor controladas nessa unidade
+ 
 if(controle<0.6){
  
- /* Condicional para impedir que a tensão do
- controlador seja inferior à 0.6V */
+ /* Condicional para impedir que a tensão aplicada
+ no Arduino seja inferior à 0.6V */
   
-  controle = 0.6;
+  controle = 0.6;  // Se o valor de controle for inferior a 0.6V, atribuir a este 0.6V
   
   }
   
 else if(controle>5){
  
- /* Condicional para impedir que a tensão do
- controlador seja superior à 5V (limite do Arduino UNO */
+ /* Condicional para impedir que a tensão aplicada
+ no Arduino seja superior à 5V (limite do Arduino UNO) */
   
-  controle = 5;
+  controle = 5;    // Se o valor de controle for superior a 5V, atribuir a este 5V
   
   }
 
-controle_anterior = controle;                    // Passando o valor atual do controle (após condicionais) para a variável do valor anterior deste
-
 controle_pwm = round((float)controle*255.0/5.0); // Passando o valor atual do controle (após condicionais) para um inteiro entre 0 e 255 (para o sinal PWM)
+ 
+controle = (float)controle*1000/rin; // Voltando a unidade da variável de controle para mA
+
+controle_anterior = controle;        // Passando o valor atual do controle (após condicionais) para a variável que acumula o valor anterior de controle
+
+Serial.print(temperatura_filtro-273.15); // Enviando para a porta serial o valor da temperatura atual do sensor em graus Celcius
+Serial.print(",");                       // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
+Serial.print(temperatura_ref_C);         // Enviando para a porta serial o valor da temperatura de referência, em graus Celcius
+Serial.print(",");                       // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
+Serial.print(corrente_entrada*1000);     // Enviando para a porta serial o valor da corrente de entrada no instante atual
+ 
 
 }
