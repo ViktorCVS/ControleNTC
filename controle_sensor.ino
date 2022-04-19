@@ -118,7 +118,7 @@ Serial.print(temperatura_filtro-273.15);   // Enviando para a porta serial o val
 Serial.print(",");                         // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
 Serial.print(temperatura_ref_C);           // Enviando para a porta serial o valor da temperatura de referência, em graus Celcius
 Serial.print(",");                         // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
-Serial.println(corrente_entrada*1000);     // Enviando para a porta serial o valor da corrente de entrada no instante atual
+Serial.println(corrente_entrada*1000);     // Enviando para a porta serial o valor da corrente de entrada no instante atual, com quebra de linha
 
 i++; // Incrementando o valor da variável que contém o número de vezes que o laço de repetição foi executado
 
