@@ -30,7 +30,6 @@ float A=0.005289681;  // Definindo a variável que contém o valor da constante 
 
 float erro[2]={0,0};  // Definindo o vetor que acumulará o erro atual e passado da temperatura do sensor com a referência
 
-
 float temperatura_ref = temperatura_ref_C+273.15; // Definindo a variável que receberá a temperatura de referência em Kelvin
 
 float temperatura_sensor;           // Definindo a variável que receberá a temperatura do sensor
@@ -81,7 +80,7 @@ temperatura_filtro = temperatura_filtro_anterior*alfa+temperatura_sensor*(1-alfa
 
 temperatura_filtro_anterior=temperatura_filtro; // Passando o valor atual da temperatura filtrada para a variável do valor anterior deste
 
-erro[1]= temperatura_ref - temperatura_filtro;  // Calculando o erro pela diferença entre a temperatura de referência e a medida (filtrada)
+erro[1]= temperatura_ref - temperatura_filtro;  // Calculando o erro atual pela diferença entre a temperatura de referência e a medida no sensor (filtrada)
 
 controle = controle_anterior+a1*erro[1]+a2*erro[0]; // Cálculo da saída do controlador
 
