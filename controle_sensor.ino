@@ -36,14 +36,17 @@ float temperatura_sensor;           // Definindo a variável que receberá a tem
 float temperatura_filtro;           // Definindo a variável que receberá a temperatura filtrada do sensor no instante atual
 float temperatura_filtro_anterior;  // Definindo a variável que receberá a temperatura filtrada do sensor no instante anterior
 
+unsigned long i=0;  // Definindo a variável que guarda o número de vezes que o laço de repetição foi executado
+
 //---------- Iniciando a programação ----------
 
 void setup() {
  
  //---------- Definindo entrada, saída e porta serial ----------
 
-pinMode(3, OUTPUT); // Linha de código para definir o pino 3 como saída
 pinMode(A5, INPUT); // Linha de código para definir o pino A5 como entrada
+pinMode(3, OUTPUT); // Linha de código para definir o pino 3 como saída
+ 
 Serial.begin(9600); // Linha de código para iniciar a porta serial com a velocidade 9600
 
 }
@@ -73,7 +76,8 @@ if(i<1){
     /* Condicional para, na primeira iteração, atribuir à temperatura anterior 
     o valor da temperatura atual do sensor */
    
-    temperatura_filtro_anterior=temperatura_sensor;
+    temperatura_filtro_anterior=temperatura_sensor; // Fazendo a atribuição
+ 
     }
 
 temperatura_filtro = temperatura_filtro_anterior*alfa+temperatura_sensor*(1-alfa); // Aplicando o filtro projetado para a temperatura do sensor
@@ -88,21 +92,21 @@ controle = (float)(controle/1000)*rin; //Passando o controle (em mA) para Volts,
  
 if(controle<0.6){
  
- /* Condicional para impedir que a tensão aplicada
- no Arduino seja inferior à 0.6V */
+    /* Condicional para impedir que a tensão aplicada
+    no Arduino seja inferior à 0.6V */
   
-  controle = 0.6;  // Se o valor de controle for inferior a 0.6V, atribuir a este 0.6V
+    controle = 0.6;  // Se o valor de controle for inferior a 0.6V, atribuir a este 0.6V
   
-  }
+    }
   
 else if(controle>5){
  
- /* Condicional para impedir que a tensão aplicada
- no Arduino seja superior à 5V (limite do Arduino UNO) */
+    /* Condicional para impedir que a tensão aplicada
+    no Arduino seja superior à 5V (limite do Arduino UNO) */
   
-  controle = 5;    // Se o valor de controle for superior a 5V, atribuir a este 5V
+    controle = 5;    // Se o valor de controle for superior a 5V, atribuir a este 5V
   
-  }
+    }
 
 controle_pwm = round((float)controle*255.0/5.0); // Passando o valor atual do controle (após condicionais) para um inteiro entre 0 e 255 (para o sinal PWM)
  
@@ -115,6 +119,7 @@ Serial.print(",");                       // Enviando para a porta serial um sepa
 Serial.print(temperatura_ref_C);         // Enviando para a porta serial o valor da temperatura de referência, em graus Celcius
 Serial.print(",");                       // Enviando para a porta serial um separador (opção visual para visualizar e capturar os dados posteriormente)
 Serial.print(corrente_entrada*1000);     // Enviando para a porta serial o valor da corrente de entrada no instante atual
- 
+
+i++; // Incrementando o valor da variável que contém o número de vezes que o laço de repetição foi executado
 
 }
