@@ -24,7 +24,7 @@ int controle_pwm = tensao_inicial_pwm;     // Definindo a variável que receber�
 
 float rs; // Definindo a variável que receberá o valor da resistência do sensor
 
-int rin=1644;         // Definindo a variável que contém o valor da resistência de entrada. O valor de 1644 foi o valor medido dessa resistência com um multímetro
+int rin=1650;         // Definindo a variável que contém o valor da resistência de entrada.
 int B=3950;           // Definindo a variável que contém o valor da constante B do sensor NTC
 float A=0.005289681;  // Definindo a variável que contém o valor da constante A do sensor NTC
 
